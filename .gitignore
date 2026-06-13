@@ -31,6 +31,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# --- npm packaging ---
+# Generated from .agent/ by scripts/build-templates.js (built on publish/pack).
+templates/
+*.tgz
+
 # --- Local config / secrets ---
 # Keep the *.template files tracked, ignore the real (local) ones.
 config.json

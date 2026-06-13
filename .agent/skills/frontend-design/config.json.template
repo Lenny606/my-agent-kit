@@ -1,0 +1,14 @@
+{
+  "skip_dirs": [
+    ".venv",
+    "venv",
+    "env",
+    ".env",
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    ".git"
+  ],
+  "max_allowed_issues": 5
+}

@@ -33,7 +33,8 @@ except AttributeError:
 SKIP_DIRS = {
     'node_modules', '.next', 'dist', 'build', '.git', '.github',
     '__pycache__', '.vscode', '.idea', 'coverage', 'test', 'tests',
-    '__tests__', 'spec', 'docs', 'documentation'
+    '__tests__', 'spec', 'docs', 'documentation', 'examples',
+    '.venv', 'venv', 'env', '.env'
 }
 
 # Files to skip (not public pages)
@@ -42,6 +43,9 @@ SKIP_FILES = {
     'package.json', 'package-lock', 'yarn.lock', '.eslintrc',
     'tailwind.config', 'postcss.config', 'next.config'
 }
+
+MIN_SCORE = 60
+
 
 
 def is_page_file(file_path: Path) -> bool:
@@ -223,6 +227,31 @@ def main():
     target = sys.argv[1] if len(sys.argv) > 1 else "."
     target_path = Path(target).resolve()
     
+    # Load configuration if available
+    global SKIP_DIRS, SKIP_FILES, MIN_SCORE
+    import os
+    config_paths = [
+        os.path.join(target_path, ".agent", "skills", "geo-fundamentals", "config.json"),
+        os.path.join(target_path, "skills", "geo-fundamentals", "config.json"),
+        os.path.join(os.getcwd(), ".agent", "skills", "geo-fundamentals", "config.json"),
+        os.path.join(os.getcwd(), "skills", "geo-fundamentals", "config.json"),
+    ]
+    
+    for config_path in config_paths:
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    if "skip_dirs" in config:
+                        SKIP_DIRS.update(config["skip_dirs"])
+                    if "skip_files" in config:
+                        SKIP_FILES.update(config["skip_files"])
+                    if "min_score" in config:
+                        MIN_SCORE = config["min_score"]
+                    break
+            except Exception as e:
+                sys.stderr.write(f"Warning: Failed to load config from {config_path}: {e}\n")
+
     print("\n" + "=" * 60)
     print("  GEO CHECKER - AI Citation Readiness Audit")
     print("=" * 60)
@@ -278,11 +307,11 @@ def main():
         "project": str(target_path),
         "pages_checked": len(results),
         "average_score": round(avg_score),
-        "passed": avg_score >= 60
+        "passed": avg_score >= MIN_SCORE
     }
     print("\n" + json.dumps(output, indent=2))
     
-    sys.exit(0 if avg_score >= 60 else 1)
+    sys.exit(0 if avg_score >= MIN_SCORE else 1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,6 @@
+{
+  "url": "https://example.com",
+  "chrome_flags": ["--headless", "--no-sandbox"],
+  "categories": ["performance", "accessibility", "best-practices", "seo"],
+  "timeout_seconds": 120
+}

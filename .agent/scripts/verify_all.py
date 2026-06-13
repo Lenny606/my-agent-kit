@@ -25,6 +25,7 @@ Includes ALL checks:
 import sys
 import subprocess
 import argparse
+import json
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime
@@ -146,6 +147,29 @@ VERIFICATION_SUITE = [
         ]
     },
 ]
+
+def resolve_url_from_config(project_path: Path) -> Optional[str]:
+    """Dynamically fetch target URL from webapp-testing or performance-profiling config.json."""
+    config_paths = [
+        # webapp-testing
+        project_path / ".agent" / "skills" / "webapp-testing" / "config.json",
+        project_path / "skills" / "webapp-testing" / "config.json",
+        # performance-profiling
+        project_path / ".agent" / "skills" / "performance-profiling" / "config.json",
+        project_path / "skills" / "performance-profiling" / "config.json",
+    ]
+    
+    for path in config_paths:
+        if path.exists():
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    url = config.get("url")
+                    if url:
+                        return url
+            except Exception:
+                pass
+    return None
 
 def run_script(name: str, script_path: Path, project_path: str, url: Optional[str] = None) -> dict:
     """Run validation script"""
@@ -271,7 +295,7 @@ Examples:
         """
     )
     parser.add_argument("project", help="Project path to validate")
-    parser.add_argument("--url", required=True, help="URL for performance & E2E checks")
+    parser.add_argument("--url", help="URL for performance & E2E checks")
     parser.add_argument("--no-e2e", action="store_true", help="Skip E2E tests")
     parser.add_argument("--stop-on-fail", action="store_true", help="Stop on first failure")
     
@@ -282,10 +306,21 @@ Examples:
     if not project_path.exists():
         print_error(f"Project path does not exist: {project_path}")
         sys.exit(1)
+        
+    url = args.url
+    resolved_from_config = False
+    if not url:
+        url = resolve_url_from_config(project_path)
+        if url:
+            resolved_from_config = True
     
     print_header("🚀 ANTIGRAVITY KIT - FULL VERIFICATION SUITE")
     print(f"Project: {project_path}")
-    print(f"URL: {args.url}")
+    if url:
+        source = " (resolved from config)" if resolved_from_config else ""
+        print(f"URL: {url}{source}")
+    else:
+        print("URL: Not provided and not found in config.json (performance/E2E checks skipped)")
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     start_time = datetime.now()
@@ -297,7 +332,7 @@ Examples:
         requires_url = suite.get("requires_url", False)
         
         # Skip if requires URL and not provided
-        if requires_url and not args.url:
+        if requires_url and not url:
             continue
         
         # Skip E2E if flag set
@@ -308,7 +343,7 @@ Examples:
         
         for name, script_path, required in suite["checks"]:
             script = project_path / script_path
-            result = run_script(name, script, str(project_path), args.url)
+            result = run_script(name, script, str(project_path), url)
             result["category"] = category
             results.append(result)
             

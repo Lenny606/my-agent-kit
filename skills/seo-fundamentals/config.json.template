@@ -1,0 +1,5 @@
+{
+  "skip_dirs": [".venv", "venv", "env", ".env", "node_modules", ".next", "dist", "build", ".git"],
+  "skip_patterns": ["config", "setup", "util", "helper", "hook", "context", "store", "service", "api", "lib", "constant", "type", "interface", "mock"],
+  "max_files": 50
+}

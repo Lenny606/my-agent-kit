@@ -1,0 +1,27 @@
+{
+  "skip_dirs": [
+    ".venv",
+    "venv",
+    "env",
+    ".env",
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    ".git"
+  ],
+  "skip_files": [
+    "jest.config",
+    "webpack.config",
+    "vite.config",
+    "tsconfig",
+    "package.json",
+    "package-lock",
+    "yarn.lock",
+    ".eslintrc",
+    "tailwind.config",
+    "postcss.config",
+    "next.config"
+  ],
+  "min_score": 60
+}

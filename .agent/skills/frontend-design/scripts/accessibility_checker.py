@@ -27,18 +27,29 @@ except:
     pass
 
 
+# Directories to skip
+SKIP_DIRS = {
+    'node_modules', '.next', 'dist', 'build', '.git', '.github',
+    '__pycache__', '.vscode', '.idea', 'coverage', 'test', 'tests',
+    '__tests__', 'spec', 'docs', 'documentation', 'examples',
+    '.venv', 'venv', 'env', '.env'
+}
+
+MAX_ALLOWED_ISSUES = 5
+
+
 def find_html_files(project_path: Path) -> list:
     """Find all HTML/JSX/TSX files."""
     patterns = ['**/*.html', '**/*.jsx', '**/*.tsx']
-    skip_dirs = {'node_modules', '.next', 'dist', 'build', '.git'}
     
     files = []
     for pattern in patterns:
         for f in project_path.glob(pattern):
-            if not any(skip in f.parts for skip in skip_dirs):
+            if not any(skip in f.parts for skip in SKIP_DIRS):
                 files.append(f)
     
     return files[:50]
+
 
 
 def check_accessibility(file_path: Path) -> list:
@@ -111,6 +122,29 @@ def check_accessibility(file_path: Path) -> list:
 def main():
     project_path = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     
+    # Load configuration if available
+    global SKIP_DIRS, MAX_ALLOWED_ISSUES
+    import os
+    config_paths = [
+        os.path.join(project_path, ".agent", "skills", "frontend-design", "config.json"),
+        os.path.join(project_path, "skills", "frontend-design", "config.json"),
+        os.path.join(os.getcwd(), ".agent", "skills", "frontend-design", "config.json"),
+        os.path.join(os.getcwd(), "skills", "frontend-design", "config.json"),
+    ]
+    
+    for config_path in config_paths:
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    if "skip_dirs" in config:
+                        SKIP_DIRS.update(config["skip_dirs"])
+                    if "max_allowed_issues" in config:
+                        MAX_ALLOWED_ISSUES = config["max_allowed_issues"]
+                    break
+            except Exception as e:
+                sys.stderr.write(f"Warning: Failed to load config from {config_path}: {e}\n")
+
     print(f"\n{'='*60}")
     print(f"[ACCESSIBILITY CHECKER] WCAG Compliance Audit")
     print(f"{'='*60}")
@@ -163,7 +197,7 @@ def main():
     
     total_issues = sum(len(item["issues"]) for item in all_issues)
     # Accessibility issues are important but not blocking
-    passed = total_issues < 5  # Allow minor issues
+    passed = total_issues < MAX_ALLOWED_ISSUES  # Allow minor issues
     
     output = {
         "script": "accessibility_checker",

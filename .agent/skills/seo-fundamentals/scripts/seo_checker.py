@@ -34,7 +34,8 @@ except:
 SKIP_DIRS = {
     'node_modules', '.next', 'dist', 'build', '.git', '.github',
     '__pycache__', '.vscode', '.idea', 'coverage', 'test', 'tests',
-    '__tests__', 'spec', 'docs', 'documentation', 'examples'
+    '__tests__', 'spec', 'docs', 'documentation', 'examples',
+    '.venv', 'venv', 'env', '.env'
 }
 
 # Files to skip (not pages)
@@ -43,6 +44,9 @@ SKIP_PATTERNS = [
     'service', 'api', 'lib', 'constant', 'type', 'interface', 'mock',
     '.test.', '.spec.', '_test.', '_spec.', 'stitch_'
 ]
+
+MAX_FILES = 50
+
 
 
 def is_page_file(file_path: Path) -> bool:
@@ -90,7 +94,8 @@ def find_pages(project_path: Path) -> list:
             if is_page_file(f):
                 files.append(f)
     
-    return files[:50]  # Limit to 50 files
+    return files[:MAX_FILES]  # Limit using MAX_FILES
+
 
 
 def check_page(file_path: Path) -> dict:
@@ -148,6 +153,33 @@ def check_page(file_path: Path) -> dict:
 def main():
     project_path = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     
+    # Load configuration if available
+    global SKIP_DIRS, SKIP_PATTERNS, MAX_FILES
+    import os
+    config_paths = [
+        os.path.join(project_path, ".agent", "skills", "seo-fundamentals", "config.json"),
+        os.path.join(project_path, "skills", "seo-fundamentals", "config.json"),
+        os.path.join(os.getcwd(), ".agent", "skills", "seo-fundamentals", "config.json"),
+        os.path.join(os.getcwd(), "skills", "seo-fundamentals", "config.json"),
+    ]
+    
+    for config_path in config_paths:
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    if "skip_dirs" in config:
+                        SKIP_DIRS.update(config["skip_dirs"])
+                    if "skip_patterns" in config:
+                        for pattern in config["skip_patterns"]:
+                            if pattern not in SKIP_PATTERNS:
+                                SKIP_PATTERNS.append(pattern)
+                    if "max_files" in config:
+                        MAX_FILES = config["max_files"]
+                    break
+            except Exception as e:
+                sys.stderr.write(f"Warning: Failed to load config from {config_path}: {e}\n")
+
     print(f"\n{'='*60}")
     print(f"  SEO CHECKER - Search Engine Optimization Audit")
     print(f"{'='*60}")
