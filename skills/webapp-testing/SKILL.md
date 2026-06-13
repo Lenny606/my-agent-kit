@@ -2,6 +2,10 @@
 name: webapp-testing
 description: Web application testing principles. E2E, Playwright, deep audit strategies.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+dependencies:
+  python: [playwright]
+  system: [chromium]
+  install: pip install playwright && playwright install chromium
 ---
 
 # Web App Testing

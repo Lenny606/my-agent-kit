@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { templatesRoot } from '../lib/paths.js';
-import { listItems, readMeta } from '../lib/fsutil.js';
+import { listItems, readMeta, readDependencies } from '../lib/fsutil.js';
 import { SECTIONS } from '../lib/targets.js';
 
 export function list() {
@@ -15,11 +15,11 @@ export function list() {
     console.log('─'.repeat(40));
     for (const item of items) {
       // Skills are folders with SKILL.md; agents/workflows are flat .md files.
-      const meta = item.isDir
-        ? readMeta(join(dir, item.file, 'SKILL.md'))
-        : readMeta(join(dir, item.file));
-      const desc = meta.description ? ` — ${truncate(meta.description, 70)}` : '';
-      console.log(`  ${item.name}${desc}`);
+      const mdPath = item.isDir ? join(dir, item.file, 'SKILL.md') : join(dir, item.file);
+      const meta = readMeta(mdPath);
+      const flag = readDependencies(mdPath) ? ' ⚠' : '';
+      const desc = meta.description ? ` — ${truncate(meta.description, 68)}` : '';
+      console.log(`  ${item.name}${flag}${desc}`);
     }
   }
   console.log('');

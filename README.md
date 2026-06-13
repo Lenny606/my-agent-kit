@@ -58,9 +58,29 @@ Prints available skills, agents and workflows with their descriptions (read from
 
 Sections marked `—` are unsupported for that target and are skipped with a warning.
 
+## Skill dependencies
+
+Some skills ship helper scripts that call external tools. Those tools are declared
+in the skill's `SKILL.md` frontmatter so you know what's needed up front:
+
+```yaml
+---
+name: webapp-testing
+dependencies:
+  python: [playwright]      # pip packages
+  node: [lighthouse]        # global npm CLIs
+  system: [chromium]        # system binaries / browsers
+  install: pip install playwright && playwright install chromium
+  note: optional free-text context
+---
+```
+
+After `init`, the CLI prints a summary of any external tools the installed skills
+need (and their install command). In `list`, skills with dependencies are marked `⚠`.
+The kit never installs these for you — it only tells you what to install.
+
 ## Notes
 
-- Some skills ship Python helper scripts (e.g. `webapp-testing` uses Playwright). Those are copied as-is — install their requirements yourself (e.g. `pip install playwright && playwright install chromium`).
 - Local `config.json` files are never bundled; only their `config.json.template` counterparts are.
 
 ## Development

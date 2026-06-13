@@ -2,7 +2,7 @@ import { join, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import pc from '../lib/colors.js';
 import { templatesRoot } from '../lib/paths.js';
-import { listItems, ensureDir, copyEntry } from '../lib/fsutil.js';
+import { listItems, ensureDir, copyEntry, readDependencies } from '../lib/fsutil.js';
 import { resolveTarget, SECTIONS } from '../lib/targets.js';
 import { confirm, resolveConflict } from '../lib/prompt.js';
 
@@ -83,6 +83,32 @@ export async function init(opts) {
 
   console.log(`\n${pc.green('✔')} Installed ${copied} item(s)` + (skipped ? pc.dim(`, ${skipped} skipped`) : '') + '.');
   console.log(pc.dim(`  Location: ${baseDir}`));
+
+  reportDependencies(plan);
+}
+
+// Warns about external tools required by installed skills (declared in their
+// SKILL.md `dependencies:` block), so the user can install them up front.
+function reportDependencies(plan) {
+  const withDeps = [];
+  for (const item of plan) {
+    if (item.section !== 'skills') continue;
+    const deps = readDependencies(join(item.src, 'SKILL.md'));
+    if (deps) withDeps.push({ name: item.name, deps });
+  }
+  if (!withDeps.length) return;
+
+  console.log(`\n${pc.yellow('⚠ Some installed skills need external tools:')}`);
+  for (const { name, deps } of withDeps) {
+    const pkgs = [
+      ...(deps.python || []).map((p) => `py:${p}`),
+      ...(deps.node || []).map((p) => `node:${p}`),
+      ...(deps.system || []).map((p) => `sys:${p}`),
+    ].join(', ');
+    console.log(`  ${pc.bold(name)}${pkgs ? ` — ${pkgs}` : ''}`);
+    if (deps.install) console.log(pc.dim(`      $ ${deps.install}`));
+    if (deps.note) console.log(pc.dim(`      ${deps.note}`));
+  }
 }
 
 // --skills / --agents / --workflows accept comma lists or "all".

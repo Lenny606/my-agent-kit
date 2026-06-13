@@ -55,3 +55,38 @@ export function readMeta(mdPath) {
   }
   return meta;
 }
+
+// Parses the optional `dependencies:` block from a SKILL.md frontmatter.
+// Returns null when absent, otherwise { python, node, system, install, note }.
+// Schema (YAML-ish, intentionally minimal — no YAML lib needed):
+//   dependencies:
+//     python: [playwright]
+//     system: [chromium]
+//     install: pip install playwright && playwright install chromium
+//     note: ...
+export function readDependencies(mdPath) {
+  if (!existsSync(mdPath)) return null;
+  const text = readFileSync(mdPath, 'utf8');
+  const fm = text.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (!fm) return null;
+
+  const lines = fm[1].split('\n');
+  const start = lines.findIndex((l) => /^dependencies:\s*$/.test(l));
+  if (start === -1) return null;
+
+  const deps = {};
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!/^\s+\S/.test(line)) break; // dedent → end of block
+    const kv = line.match(/^\s+(python|node|system|install|note):\s*(.*)$/);
+    if (!kv) continue;
+    const [, key, raw] = kv;
+    if (key === 'install' || key === 'note') {
+      deps[key] = raw.trim();
+    } else {
+      const arr = raw.replace(/^\[|\]$/g, '').split(',').map((s) => s.trim()).filter(Boolean);
+      if (arr.length) deps[key] = arr;
+    }
+  }
+  return Object.keys(deps).length ? deps : null;
+}
