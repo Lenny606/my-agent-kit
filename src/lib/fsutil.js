@@ -1,5 +1,6 @@
-import { readdirSync, statSync, existsSync, mkdirSync, cpSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, statSync, existsSync, mkdirSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { join, relative } from 'node:path';
 
 export function listDirs(path) {
   if (!existsSync(path)) return [];
@@ -57,11 +58,14 @@ export function readMeta(mdPath) {
 }
 
 // Parses the optional `dependencies:` block from a SKILL.md frontmatter.
-// Returns null when absent, otherwise { python, node, system, install, note }.
+// Returns null when absent, otherwise { python, node, system, mcp, install, note }.
+// `mcp` lists Model Context Protocol servers the skill expects to be available
+// (configured in mcp_config.json) — distinct from packages you `install`.
 // Schema (YAML-ish, intentionally minimal — no YAML lib needed):
 //   dependencies:
 //     python: [playwright]
 //     system: [chromium]
+//     mcp: [playwright]
 //     install: pip install playwright && playwright install chromium
 //     note: ...
 export function readDependencies(mdPath) {
@@ -78,7 +82,7 @@ export function readDependencies(mdPath) {
   for (let i = start + 1; i < lines.length; i++) {
     const line = lines[i];
     if (!/^\s+\S/.test(line)) break; // dedent → end of block
-    const kv = line.match(/^\s+(python|node|system|install|note):\s*(.*)$/);
+    const kv = line.match(/^\s+(python|node|system|mcp|install|note):\s*(.*)$/);
     if (!kv) continue;
     const [, key, raw] = kv;
     if (key === 'install' || key === 'note') {

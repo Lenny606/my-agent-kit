@@ -4,7 +4,9 @@ description: Performance profiling principles. Measurement, analysis, and optimi
 allowed-tools: Read, Glob, Grep, Bash
 dependencies:
   node: [lighthouse]
+  mcp: [chrome-devtools]
   install: npm install -g lighthouse
+  note: The `chrome-devtools` MCP server enables live performance traces and Core Web Vitals analysis without the local Lighthouse CLI.
 ---
 
 # Performance Profiling

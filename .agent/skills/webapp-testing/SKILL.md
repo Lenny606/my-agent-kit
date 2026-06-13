@@ -5,7 +5,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 dependencies:
   python: [playwright]
   system: [chromium]
+  mcp: [playwright]
   install: pip install playwright && playwright install chromium
+  note: The `playwright` MCP server is an alternative to the local Python runner for driving a browser.
 ---
 
 # Web App Testing

@@ -87,8 +87,9 @@ export async function init(opts) {
   reportDependencies(plan);
 }
 
-// Warns about external tools required by installed skills (declared in their
-// SKILL.md `dependencies:` block), so the user can install them up front.
+// Warns about environment requirements declared by installed skills in their
+// SKILL.md `dependencies:` block — external tools to install and MCP servers to
+// configure — so the user can set them up up front.
 function reportDependencies(plan) {
   const withDeps = [];
   for (const item of plan) {
@@ -98,7 +99,7 @@ function reportDependencies(plan) {
   }
   if (!withDeps.length) return;
 
-  console.log(`\n${pc.yellow('⚠ Some installed skills need external tools:')}`);
+  console.log(`\n${pc.yellow('⚠ Some installed skills have environment requirements:')}`);
   for (const { name, deps } of withDeps) {
     const pkgs = [
       ...(deps.python || []).map((p) => `py:${p}`),
@@ -107,6 +108,7 @@ function reportDependencies(plan) {
     ].join(', ');
     console.log(`  ${pc.bold(name)}${pkgs ? ` — ${pkgs}` : ''}`);
     if (deps.install) console.log(pc.dim(`      $ ${deps.install}`));
+    if (deps.mcp) console.log(pc.dim(`      MCP: ${deps.mcp.join(', ')} — configure in mcp_config.json`));
     if (deps.note) console.log(pc.dim(`      ${deps.note}`));
   }
 }

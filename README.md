@@ -60,8 +60,9 @@ Sections marked `—` are unsupported for that target and are skipped with a war
 
 ## Skill dependencies
 
-Some skills ship helper scripts that call external tools. Those tools are declared
-in the skill's `SKILL.md` frontmatter so you know what's needed up front:
+Some skills ship helper scripts that call external tools, or expect a Model
+Context Protocol (MCP) server to be available. Both are declared in the skill's
+`SKILL.md` frontmatter so you know what's needed up front:
 
 ```yaml
 ---
@@ -70,14 +71,20 @@ dependencies:
   python: [playwright]      # pip packages
   node: [lighthouse]        # global npm CLIs
   system: [chromium]        # system binaries / browsers
+  mcp: [playwright]         # MCP servers to configure in mcp_config.json
   install: pip install playwright && playwright install chromium
   note: optional free-text context
 ---
 ```
 
-After `init`, the CLI prints a summary of any external tools the installed skills
-need (and their install command). In `list`, skills with dependencies are marked `⚠`.
-The kit never installs these for you — it only tells you what to install.
+`mcp` lists the MCP servers a skill leverages (e.g. a database skill might need a
+`mongodb` server, a browser skill a `playwright` one). Unlike `python`/`node`/`system`,
+these aren't installed with a package command — you register them in your agent's
+`mcp_config.json` (see `templates/agent/mcp_config.json` for the format).
+
+After `init`, the CLI prints a summary of any external tools and MCP servers the
+installed skills need. In `list`, skills with dependencies are marked `⚠`.
+The kit never installs or configures these for you — it only tells you what's required.
 
 ## Notes
 
