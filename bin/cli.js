@@ -19,7 +19,7 @@ Commands:
   help        Show this help
 
 init options:
-  --target <agent|claude|cursor>   Target layout (default: agent)
+  --target <agent|claude|cursor|junie>   Target layout (default: agent)
   --dir <path>                     Project directory (default: cwd)
   --skills <a,b,c>                 Only these skills
   --agents <a,b,c>                 Only these agents

@@ -32,6 +32,16 @@ export const TARGETS = {
       scripts: null,
     },
   },
+  junie: {
+    base: '.junie',
+    map: {
+      skills: 'skills',
+      agents: 'agents',
+      workflows: 'workflows',
+      rules: 'guidelines',
+      scripts: 'scripts',
+    },
+  },
 };
 
 export const SECTIONS = ['skills', 'agents', 'workflows', 'rules', 'scripts'];

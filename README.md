@@ -2,7 +2,7 @@
 
 > Install AI agent **skills**, **agents** and **workflows** into your project with a single command.
 
-A modular toolkit (40 skills, 20 specialist agents, 11 workflows) that you can scaffold into any project via `npx`. Works with the Antigravity (`.agent/`), Claude Code (`.claude/`) and Cursor (`.cursor/`) layouts.
+A modular toolkit (40 skills, 20 specialist agents, 11 workflows) that you can scaffold into any project via `npx`. Works with the Antigravity (`.agent/`), Claude Code (`.claude/`), Cursor (`.cursor/`) and Junie (`.junie/`) layouts.
 
 ## Quick start
 
@@ -42,7 +42,7 @@ Copies kit content into your project.
 
 | Option | Description |
 | ------ | ----------- |
-| `--target <agent\|claude\|cursor>` | Target directory convention (default: `agent`) |
+| `--target <agent\|claude\|cursor\|junie>` | Target directory convention (default: `agent`) |
 | `--dir <path>` | Project directory (default: current working dir) |
 | `--skills <a,b,c>` | Install only these skills |
 | `--agents <a,b,c>` | Install only these agents |
@@ -100,13 +100,13 @@ Prints available skills, agents and workflows with their descriptions (read from
 
 ## Target layout mapping
 
-| Kit section | `agent` | `claude` | `cursor` |
-| ----------- | ------- | -------- | -------- |
-| skills      | `.agent/skills/` | `.claude/skills/` | `.cursor/rules/` |
-| agents      | `.agent/agents/` | `.claude/agents/` | — |
-| workflows   | `.agent/workflows/` | `.claude/commands/` | — |
-| rules       | `.agent/rules/` | `.claude/rules/` | `.cursor/rules/` |
-| scripts     | `.agent/scripts/` | `.claude/scripts/` | — |
+| Kit section | `agent` | `claude` | `cursor` | `junie` |
+| ----------- | ------- | -------- | -------- | ------- |
+| skills      | `.agent/skills/` | `.claude/skills/` | `.cursor/rules/` | `.junie/skills/` |
+| agents      | `.agent/agents/` | `.claude/agents/` | — | `.junie/agents/` |
+| workflows   | `.agent/workflows/` | `.claude/commands/` | — | `.junie/workflows/` |
+| rules       | `.agent/rules/` | `.claude/rules/` | `.cursor/rules/` | `.junie/guidelines/` |
+| scripts     | `.agent/scripts/` | `.claude/scripts/` | — | `.junie/scripts/` |
 
 Sections marked `—` are unsupported for that target and are skipped with a warning.
 
