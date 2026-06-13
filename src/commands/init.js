@@ -1,8 +1,11 @@
 import { join, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import pc from '../lib/colors.js';
-import { templatesRoot } from '../lib/paths.js';
-import { listItems, ensureDir, copyEntry, readDependencies } from '../lib/fsutil.js';
+import { templatesRoot, kitVersion, LOCKFILE } from '../lib/paths.js';
+import {
+  listItems, ensureDir, copyEntry, readDependencies,
+  readLock, writeLock, readVersion, hashEntry,
+} from '../lib/fsutil.js';
 import { resolveTarget, SECTIONS } from '../lib/targets.js';
 import { confirm, resolveConflict } from '../lib/prompt.js';
 
@@ -84,7 +87,30 @@ export async function init(opts) {
   console.log(`\n${pc.green('✔')} Installed ${copied} item(s)` + (skipped ? pc.dim(`, ${skipped} skipped`) : '') + '.');
   console.log(pc.dim(`  Location: ${baseDir}`));
 
+  writeLockfile(plan, baseDir, target.base);
   reportDependencies(plan);
+}
+
+// Records what's now installed (version + content hash per item) so a later
+// `agent-kit update` can tell apart "upstream changed" from "user edited locally".
+// The hash is taken from the destination, so the lock describes exactly what is
+// on disk — whether the file was freshly copied or an existing one was kept.
+function writeLockfile(plan, baseDir, target) {
+  const lockPath = join(baseDir, LOCKFILE);
+  const lock = readLock(lockPath);
+  lock.kitVersion = kitVersion();
+  lock.target = target;
+  lock.generatedAt = new Date().toISOString();
+  lock.items ||= {};
+
+  for (const item of plan) {
+    if (!existsSync(item.dest)) continue;
+    lock.items[`${item.section}/${item.name}`] = {
+      version: readVersion(item.section, item.dest),
+      hash: hashEntry(item.dest),
+    };
+  }
+  writeLock(lockPath, lock);
 }
 
 // Warns about environment requirements declared by installed skills in their

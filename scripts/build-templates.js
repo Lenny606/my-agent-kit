@@ -24,6 +24,8 @@ cpSync(src, dest, {
     // Never bundle local/secret config — only the *.template stays.
     const base = path.replace(/\\/g, '/');
     if (base.endsWith('/config.json')) return false;
+    // A lockfile only belongs in a consumer project, never in the bundle.
+    if (base.endsWith('/agent-kit.lock.json')) return false;
     return true;
   },
 });

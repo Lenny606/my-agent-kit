@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
 import { init } from '../src/commands/init.js';
+import { update } from '../src/commands/update.js';
 import { list } from '../src/commands/list.js';
 import { search } from '../src/commands/search.js';
 
@@ -12,6 +13,7 @@ Usage:
 
 Commands:
   init        Install kit content into the current project
+  update      Refresh installed content from the latest kit (keeps local edits)
   list        Show available skills, agents and workflows
   search      Search for skills semantically using a query
   help        Show this help
@@ -26,10 +28,18 @@ init options:
   --force                          Overwrite existing files without asking
   --yes, -y                        Non-interactive (skip prompts/conflicts)
 
+update options:
+  (accepts the same --target/--dir/--skills/... filters as init)
+  --check                          Report available updates without applying them
+  --force                          Overwrite even locally-edited files
+  --yes, -y                        Non-interactive (apply safe updates, skip conflicts)
+
 Examples:
   npx agent-kit init
   npx agent-kit init --target claude
   npx agent-kit init --skills webapp-testing,api-patterns
+  npx agent-kit update --check
+  npx agent-kit update --skills tailwind-patterns
   npx agent-kit list
   npx agent-kit search "auth password"
 `;
@@ -46,6 +56,7 @@ const { values, positionals } = parseArgs({
     scripts: { type: 'string' },
     all: { type: 'boolean', default: false },
     force: { type: 'boolean', default: false },
+    check: { type: 'boolean', default: false },
     yes: { type: 'boolean', short: 'y', default: false },
     help: { type: 'boolean', short: 'h', default: false },
   },
@@ -57,6 +68,9 @@ try {
   switch (cmd) {
     case 'init':
       await init(values);
+      break;
+    case 'update':
+      await update(values);
       break;
     case 'list':
       list();

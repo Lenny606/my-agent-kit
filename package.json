@@ -16,8 +16,17 @@
   },
   "scripts": {
     "build:templates": "node scripts/build-templates.js",
+    "prepare": "node scripts/build-templates.js",
     "prepublishOnly": "npm run build:templates",
     "prepack": "npm run build:templates"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lenny606/my-agent-kit.git"
+  },
+  "homepage": "https://github.com/Lenny606/my-agent-kit#readme",
+  "bugs": {
+    "url": "https://github.com/Lenny606/my-agent-kit/issues"
   },
   "keywords": [
     "ai",

@@ -39,6 +39,8 @@ templates/
 # --- Local config / secrets ---
 # Keep the *.template files tracked, ignore the real (local) ones.
 config.json
+# Install manifest — only meaningful inside a consumer project, never in the source kit.
+agent-kit.lock.json
 .env
 .env.*
 !.env.example

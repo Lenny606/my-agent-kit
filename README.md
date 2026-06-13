@@ -6,22 +6,33 @@ A modular toolkit (40 skills, 20 specialist agents, 11 workflows) that you can s
 
 ## Quick start
 
+Run it straight from GitHub — no install, no npm publish required:
+
 ```bash
 # Install the whole kit into the current project (.agent/ by default)
-npx agent-kit init
+npx github:Lenny606/my-agent-kit init
 
 # Pick a target layout
-npx agent-kit init --target claude
-npx agent-kit init --target cursor
+npx github:Lenny606/my-agent-kit init --target claude
+npx github:Lenny606/my-agent-kit init --target cursor
 
 # Install only specific skills
-npx agent-kit init --skills webapp-testing,api-patterns
+npx github:Lenny606/my-agent-kit init --skills webapp-testing,api-patterns
 
 # See what's available
-npx agent-kit list
+npx github:Lenny606/my-agent-kit list
 ```
 
-No global install required — `npx` fetches and runs it on demand. The CLI has **zero runtime dependencies**.
+`npx` clones the repo, runs the `prepare` step (which bundles the kit content) and
+executes the CLI on demand. No global install required and **zero runtime dependencies**.
+
+> Tip: pin a version with `npx github:Lenny606/my-agent-kit#v0.1.0 init`, or any branch/tag/commit after `#`.
+
+If the package is also published to npm, the shorter form works too:
+
+```bash
+npx agent-kit init
+```
 
 ## Commands
 
@@ -41,6 +52,47 @@ Copies kit content into your project.
 | `--yes`, `-y` | Non-interactive; skip prompts and existing files |
 
 When a file already exists you'll be asked to **overwrite / skip / backup** (creates a `.bak`). Use `--force` or `--yes` in CI.
+
+`init` also writes a lockfile (`<base>/agent-kit.lock.json`) recording the version
+and a content hash of every installed item. That lockfile is what makes `update` safe.
+
+### `update`
+
+Refreshes already-installed content from the latest kit, so a standards change
+(e.g. Tailwind v3 → v4) propagates into your project instead of being hand-copied.
+The **npm package is the central source** — run it against the newest release:
+
+```bash
+# Pull the newest kit and update everything that's installed
+npx agent-kit@latest update
+
+# See what would change without touching anything
+npx agent-kit@latest update --check
+
+# Update a single skill
+npx agent-kit@latest update --skills tailwind-patterns
+```
+
+For each installed item, `update` compares three states using the lockfile:
+
+| Situation | What happens |
+| --------- | ------------ |
+| Installed content already matches the kit | Skipped (up to date) |
+| Kit changed, your copy is **untouched** since install | Updated automatically |
+| Kit changed **and** you edited your local copy | Flagged as a conflict — you choose overwrite / skip / backup |
+
+It accepts the same `--target` / `--dir` / `--skills` / `--agents` / … filters as `init`.
+
+| Option | Description |
+| ------ | ----------- |
+| `--check` | Dry run — report available updates, change nothing |
+| `--force` | Overwrite even locally-edited files |
+| `--yes`, `-y` | Non-interactive: apply safe updates, skip conflicts |
+
+> **Versioning convention:** bump the `version:` field in a skill's `SKILL.md`
+> frontmatter when you change its standard. The version is shown in `update`
+> output (`tailwind-patterns 1.0.0 → 2.0.0`); change detection itself is
+> content-hash based, so updates are caught even if you forget to bump.
 
 ### `list`
 

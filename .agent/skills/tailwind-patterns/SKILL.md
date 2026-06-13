@@ -1,5 +1,6 @@
 ---
 name: tailwind-patterns
+version: 1.0.0
 description: Tailwind CSS v4 principles. CSS-first configuration, container queries, modern patterns, design token architecture.
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---

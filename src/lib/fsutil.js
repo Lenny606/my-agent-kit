@@ -43,7 +43,7 @@ export function copyEntry(src, dest, { overwrite, backup }) {
   return 'copied';
 }
 
-// Reads `name`/`description` from a SKILL.md / agent .md frontmatter block.
+// Reads `name`/`description`/`version` from a SKILL.md / agent .md frontmatter block.
 export function readMeta(mdPath) {
   if (!existsSync(mdPath)) return {};
   const text = readFileSync(mdPath, 'utf8');
@@ -51,10 +51,67 @@ export function readMeta(mdPath) {
   if (!m) return {};
   const meta = {};
   for (const line of m[1].split('\n')) {
-    const kv = line.match(/^(name|description):\s*(.+)$/);
-    if (kv) meta[kv[1]] = kv[2].trim();
+    const kv = line.match(/^(name|description|version):\s*(.+)$/);
+    if (kv) meta[kv[1]] = kv[2].trim().replace(/^["']|["']$/g, '');
   }
   return meta;
+}
+
+// The metadata file that carries an item's frontmatter for a given section.
+// Skills are folders with a SKILL.md; everything else is a flat .md file.
+export function metaFileFor(section, entryPath) {
+  return section === 'skills' ? join(entryPath, 'SKILL.md') : entryPath;
+}
+
+// Declared semantic version of an installable item, or '0.0.0' when unversioned.
+export function readVersion(section, entryPath) {
+  return readMeta(metaFileFor(section, entryPath)).version || '0.0.0';
+}
+
+// Content fingerprint of an installed/source entry, used to detect whether the
+// upstream content changed and whether the user edited their local copy.
+// Mirrors copyEntry's filter: config.json (per-project) and *.bak are ignored,
+// so a backup or a local config never registers as a content change.
+export function hashEntry(path) {
+  if (!existsSync(path)) return null;
+  const hash = createHash('sha256');
+  for (const file of walkFiles(path)) {
+    hash.update(relative(path, file).replace(/\\/g, '/'));
+    hash.update('\0');
+    hash.update(readFileSync(file));
+    hash.update('\0');
+  }
+  return hash.digest('hex');
+}
+
+function walkFiles(path) {
+  const st = statSync(path);
+  if (st.isFile()) return [path];
+  const out = [];
+  for (const name of readdirSync(path).sort()) {
+    if (name === 'config.json' || name.endsWith('.bak')) continue;
+    const full = join(path, name);
+    if (statSync(full).isDirectory()) out.push(...walkFiles(full));
+    else out.push(full);
+  }
+  return out;
+}
+
+// Reads the kit lockfile (installed item versions + content hashes). Returns a
+// normalized shape even when the file is absent or corrupt, so callers can
+// treat "no lockfile" as "nothing tracked yet".
+export function readLock(lockPath) {
+  if (!existsSync(lockPath)) return { items: {} };
+  try {
+    const data = JSON.parse(readFileSync(lockPath, 'utf8'));
+    return { items: {}, ...data };
+  } catch {
+    return { items: {} };
+  }
+}
+
+export function writeLock(lockPath, data) {
+  writeFileSync(lockPath, JSON.stringify(data, null, 2) + '\n');
 }
 
 // Parses the optional `dependencies:` block from a SKILL.md frontmatter.
