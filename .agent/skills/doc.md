@@ -175,3 +175,89 @@ By creating Skills, you transform a general AI model into an expert for your pro
 - ✅ The Agent automatically knows how to work with your team
 
 Instead of constantly reminding the AI to "remember to add the license" or "fix the commit format," now the Agent will do it automatically!
+
+---
+
+## ⚙️ Stateful and Local Configurations for Skills
+
+Starting in June 2026, skills can be configured locally per project using a `config.json` file. This transitions skills from static rule definitions to stateful modules that customize their execution parameters based on the local workspace environment.
+
+### Standard Configuration Structure
+
+For skills requiring local parameters (e.g., testing URLs, timeout settings, viewport configurations), a local `config.json` should be placed under the skill directory in the workspace:
+
+```
+<project-root>/skills/<skill-name>/config.json
+```
+or 
+```
+<project-root>/.agent/skills/<skill-name>/config.json
+```
+
+A template file `config.json.template` should be provided alongside it for default reference.
+
+#### Example: `config.json` for `webapp-testing`
+
+```json
+{
+  "url": "http://localhost:3000",
+  "take_screenshot": true,
+  "check_a11y": false,
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "timeout_ms": 30000,
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
+```
+
+### Script Pattern for Loading Configuration (Python)
+
+When writing Python runner scripts within a skill, follow this standard pattern to resolve config locations. Scripts must fallback gracefully to default values if no configuration exists or if some fields are missing:
+
+```python
+import os
+import json
+import sys
+
+# 1. Initialize defaults
+project_path = "."
+url = "http://localhost:3000"
+viewport = {"width": 1280, "height": 720}
+timeout_ms = 30000
+
+# 2. Parse command-line args for overrides/positionals
+# ...
+
+# 3. Resolve possible config paths
+config_paths = [
+    os.path.join(project_path, ".agent", "skills", "my-skill", "config.json"),
+    os.path.join(project_path, "skills", "my-skill", "config.json"),
+    os.path.join(os.getcwd(), ".agent", "skills", "my-skill", "config.json"),
+    os.path.join(os.getcwd(), "skills", "my-skill", "config.json"),
+]
+
+# 4. Load configuration sequentially
+for config_path in config_paths:
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+                # Apply config keys if not explicitly overwritten by command-line args
+                if "url" in config:
+                    url = config["url"]
+                if "viewport" in config:
+                    viewport = config["viewport"]
+                if "timeout_ms" in config:
+                    timeout_ms = config["timeout_ms"]
+                break
+        except Exception as e:
+            sys.stderr.write(f"Warning: Failed to load config from {config_path}: {e}\n")
+```
+
+This pattern ensures that:
+1. **Dynamic Defaults**: AI agents can inspect `config.json` to understand site configurations.
+2. **Backwards Compatibility**: Scripts still accept parameters/overrides via CLI commands.
+3. **Graceful Fallbacks**: Missing keys or malformed JSON files do not crash the script.
+
