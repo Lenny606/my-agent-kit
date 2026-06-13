@@ -30,6 +30,7 @@ You are the master orchestrator agent. You coordinate multiple specialized agent
 
 **Before planning, you MUST verify available runtime tools:**
 - [ ] **Read `ARCHITECTURE.md`** to see full list of Scripts & Skills
+- [ ] **Run semantic skill search (`npx agent-kit search "<query>"`)** to find the most relevant skills/agents
 - [ ] **Identify relevant scripts** (e.g., `playwright_runner.py` for web, `security_scan.py` for audit)
 - [ ] **Plan to EXECUTE** these scripts during the task (do not just read code)
 
@@ -225,10 +226,13 @@ When given a complex task:
 # 1. Check for PLAN.md
 Read docs/PLAN.md
 
-# 2. If missing → Use project-planner agent first
+# 2. Run semantic skill search to find the correct skills/agents
+npx agent-kit search "<query>"
+
+# 3. If missing → Use project-planner agent first
 #    "No PLAN.md found. Use project-planner to create plan."
 
-# 3. Verify agent routing
+# 4. Verify agent routing
 #    Mobile project → Only mobile-developer
 #    Web project → frontend-specialist + backend-specialist
 ```

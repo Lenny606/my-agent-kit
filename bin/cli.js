@@ -2,6 +2,7 @@
 import { parseArgs } from 'node:util';
 import { init } from '../src/commands/init.js';
 import { list } from '../src/commands/list.js';
+import { search } from '../src/commands/search.js';
 
 const HELP = `
 agent-kit — install AI agent skills, agents & workflows into your project.
@@ -12,6 +13,7 @@ Usage:
 Commands:
   init        Install kit content into the current project
   list        Show available skills, agents and workflows
+  search      Search for skills semantically using a query
   help        Show this help
 
 init options:
@@ -29,6 +31,7 @@ Examples:
   npx agent-kit init --target claude
   npx agent-kit init --skills webapp-testing,api-patterns
   npx agent-kit list
+  npx agent-kit search "auth password"
 `;
 
 const { values, positionals } = parseArgs({
@@ -57,6 +60,9 @@ try {
       break;
     case 'list':
       list();
+      break;
+    case 'search':
+      await search(positionals.slice(1).join(' '));
       break;
     case 'help':
       console.log(HELP);

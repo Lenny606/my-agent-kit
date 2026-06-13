@@ -14,9 +14,11 @@ version: 1.0.0
 
 ## How It Works
 
-### 1. Request Analysis
+### 1. Request Analysis & Semantic Search
 
-Before responding to ANY user request, perform automatic analysis:
+Before responding to ANY user request, perform automatic analysis. To improve routing accuracy, especially when there are many domain-specific skills, the model should execute a semantic skill search using:
+`npx agent-kit search "<query>"`
+This searches the local TF-IDF skills index (which fuzzy-matches synonyms and bigrams) to return the top 3 most relevant skills. Use these results to guide your agent and skill selection.
 
 ```mermaid
 graph TD
