@@ -1,0 +1,36 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+interface Props {
+  // Define props here
+  class?: string;
+}
+
+const { class: className, ...rest } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<div class:list={["component-base", className]} {...rest}>
+  <h2>{t('example.key')}</h2>
+  <slot />
+</div>
+
+<style>
+  .component-base {
+    /* Component specific styles using design tokens if needed */
+    @apply text-on-surface;
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+
+  // Animation logic
+  const elements = document.querySelectorAll('.component-base');
+  
+  elements.forEach(el => {
+    // gsap.from(el, { opacity: 0, y: 20 });
+  });
+</script>
